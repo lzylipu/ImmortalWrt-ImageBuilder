@@ -37,7 +37,7 @@ grep -qx "ARCH_PACKAGES=${ARCH_PACKAGES}" buildinfo.txt || { echo "❌ arch mism
 curl -fsSLo /tmp/ipsec-kmod-assets.txt "${BASE_URL}/assets.txt"
 required='kmod-ipsec kmod-ipsec4 kmod-ipsec6 kmod-ipt-ipsec'
 for pkg in $required; do
-  grep -q "^${pkg}_.*\.apk$" /tmp/ipsec-kmod-assets.txt || {
+  grep -q "^${pkg}-.*\.apk$" /tmp/ipsec-kmod-assets.txt || {
     echo "❌ missing required kmod asset: ${pkg}"
     cat /tmp/ipsec-kmod-assets.txt
     exit 1
