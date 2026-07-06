@@ -40,6 +40,11 @@ else
 fi
 
 
+# 下载同版本 IPsec/XFRM kmod APK（可选，用于 Docker IKEv2）
+if [ -f shell/ipsec-kmods.sh ]; then
+  bash shell/ipsec-kmods.sh
+fi
+
 # 输出调试信息
 echo "$(date '+%Y-%m-%d %H:%M:%S') - 开始构建固件..."
 
@@ -63,6 +68,12 @@ PACKAGES="$PACKAGES luci-i18n-filemanager-zh-cn"
 # 合并imm仓库以外的第三方插件 暂时注释
 PACKAGES="$PACKAGES $CUSTOM_PACKAGES"
 
+
+# 添加 IPsec/XFRM kmod 包名（APK 已由 shell/ipsec-kmods.sh 放入本地 packages 目录）
+if [ -s /tmp/ipsec-kmod-packages.env ]; then
+    PACKAGES="$PACKAGES $(cat /tmp/ipsec-kmod-packages.env)"
+    echo "Adding IPsec/XFRM kmod packages"
+fi
 
 # 判断是否需要编译 Docker 插件
 if [ "$INCLUDE_DOCKER" = "yes" ]; then
