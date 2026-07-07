@@ -4,7 +4,7 @@
 CUSTOM_PACKAGES=""
 source shell/apk-custom-packages.sh
 if [ -f shell/apply-package-selection.sh ]; then
-  LZY_UPSTREAM_PACKAGE_FILE="shell/apk-custom-packages.sh" LZY_PACKAGE_SOURCE="apk" source shell/apply-package-selection.sh
+  UPSTREAM_PACKAGE_FILE="shell/apk-custom-packages.sh" PACKAGE_SOURCE="apk" source shell/apply-package-selection.sh
 fi
 echo "第三方apk软件包: $CUSTOM_PACKAGES"
 LOGFILE="/tmp/uci-defaults-log.txt"

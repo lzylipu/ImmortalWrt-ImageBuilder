@@ -3,7 +3,7 @@
 CUSTOM_PACKAGES=""
 source shell/custom-packages.sh
 if [ -f shell/apply-package-selection.sh ]; then
-  LZY_UPSTREAM_PACKAGE_FILE="shell/custom-packages.sh" LZY_PACKAGE_SOURCE="custom" source shell/apply-package-selection.sh
+  UPSTREAM_PACKAGE_FILE="shell/custom-packages.sh" PACKAGE_SOURCE="custom" source shell/apply-package-selection.sh
 fi
 source shell/switch_repository.sh
 echo "第三方软件包: $CUSTOM_PACKAGES"
