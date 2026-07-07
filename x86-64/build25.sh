@@ -1,8 +1,13 @@
 #!/bin/bash
 # Log file for debugging
-# 目前支持少部分第三方软件apk 通过打开shell/apk-custom-packages.sh的注释来集成
-source shell/apk-custom-packages.sh
-echo "第三方apk软件包: $CUSTOM_PACKAGES"
+# LZY 分支：优先读取单文件插件配置；若不存在则回退悟空原始 apk-custom-packages.sh
+CUSTOM_PACKAGES=""
+if [ -f shell/lzy-package-profile.sh ]; then
+  source shell/lzy-package-profile.sh
+else
+  source shell/apk-custom-packages.sh
+fi
+echo "自定义插件软件包: $CUSTOM_PACKAGES"
 LOGFILE="/tmp/uci-defaults-log.txt"
 echo "Starting 99-custom.sh at $(date)" >> $LOGFILE
 echo "编译固件大小为: $PROFILE MB"
@@ -26,7 +31,7 @@ if [ -z "$CUSTOM_PACKAGES" ]; then
 else
   # ============= 同步第三方插件库==============
   # 同步第三方软件仓库run/apk
-  echo "🔄 正在同步第三方软件仓库 Cloning run file repo..."
+  echo "🔄 正在同步第三方/本地 APK 仓库 Cloning run file repo..."
   git clone --depth=1 https://github.com/wukongdaily/apk.git /tmp/store-apk-repo
 
   # 拷贝 run/x86 下所有 run 文件和apk文件 到 extra-packages 目录
