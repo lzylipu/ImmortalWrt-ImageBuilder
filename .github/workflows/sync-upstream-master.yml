@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          ref: lzy/ipsec-kmods
+          ref: ipsec-kmods
 
       - name: Sync master and merge upstream into LZY branch
         run: |
@@ -25,7 +25,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git remote add upstream https://github.com/wukongdaily/ImmortalWrt-ImageBuilder.git || true
           git fetch upstream master
-          git fetch origin master lzy/ipsec-kmods
+          git fetch origin master ipsec-kmods
 
           # 1) master 永远作为上游镜像，方便随时对照悟空原版。
           git checkout master
@@ -33,10 +33,10 @@ jobs:
           git push origin master --force-with-lease
 
           # 2) LZY 分支每天合入上游更新；冲突时优先保留本分支自定义文件，不让同步覆盖自定义。
-          git checkout lzy/ipsec-kmods
+          git checkout ipsec-kmods
           git merge --no-edit -X ours upstream/master || {
             echo "❌ upstream merge conflicted. Custom files were not overwritten; please resolve manually."
             git status --short
             exit 1
           }
-          git push origin lzy/ipsec-kmods
+          git push origin ipsec-kmods

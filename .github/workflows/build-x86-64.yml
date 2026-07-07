@@ -1,4 +1,4 @@
-name: LZY Build x86-64
+name: Build x86-64
 
 on:
   workflow_dispatch:
