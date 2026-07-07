@@ -4,7 +4,7 @@
 # in shell/custom-packages.sh or shell/apk-custom-packages.sh.
 set -euo pipefail
 
-SELECTION_FILE="${LZY_PACKAGE_SELECTION:-shell/lzy-package-selection.conf}"
+SELECTION_FILE="${LZY_PACKAGE_SELECTION:-shell/package-selection.conf}"
 UPSTREAM_FILE="${LZY_UPSTREAM_PACKAGE_FILE:?LZY_UPSTREAM_PACKAGE_FILE is required}"
 SOURCE_KIND="${LZY_PACKAGE_SOURCE:?LZY_PACKAGE_SOURCE is required}"  # apk or custom
 
