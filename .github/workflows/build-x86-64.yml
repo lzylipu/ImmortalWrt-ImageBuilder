@@ -2,10 +2,40 @@ name: Build x86-64
 
 on:
   workflow_dispatch:
+    inputs:
+      firmware_version:
+        description: "ImmortalWrt 版本"
+        required: true
+        default: "25.12.0"
+      rootfs_size_mb:
+        description: "rootfs 分区大小(MB)"
+        required: true
+        default: "1024"
+      custom_router_ip:
+        description: "路由器管理地址"
+        required: true
+        default: "192.168.100.1"
+      include_docker:
+        description: "集成 Docker"
+        required: true
+        default: "yes"
+      enable_ipsec_kmods:
+        description: "集成 IPsec kmods"
+        required: true
+        default: "yes"
   push:
-    branches: [ipsec-kmods]
+    branches: [ ipsec-kmods ]
+
 permissions:
   contents: write
 
 jobs:
   build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build firmware
+        run: |
+          chmod +x x86-64/build25.sh
+          # 这里为了确保在测试环境立刻能跑，先提交触发一个 push 事件
+          echo "Triggering push build"
