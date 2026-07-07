@@ -1,13 +1,12 @@
 #!/bin/bash
 # Log file for debugging
-# LZY 分支：优先读取单文件插件配置；若不存在则回退悟空原始 apk-custom-packages.sh
+# 先读取悟空上游 25.12 APK 插件文件，再应用 LZY 汇总选择文件（只引用上游已有包组）
 CUSTOM_PACKAGES=""
-if [ -f shell/lzy-package-profile.sh ]; then
-  source shell/lzy-package-profile.sh
-else
-  source shell/apk-custom-packages.sh
+source shell/apk-custom-packages.sh
+if [ -f shell/lzy-apply-package-selection.sh ]; then
+  LZY_UPSTREAM_PACKAGE_FILE="shell/apk-custom-packages.sh" LZY_PACKAGE_SOURCE="apk" source shell/lzy-apply-package-selection.sh
 fi
-echo "自定义插件软件包: $CUSTOM_PACKAGES"
+echo "第三方apk软件包: $CUSTOM_PACKAGES"
 LOGFILE="/tmp/uci-defaults-log.txt"
 echo "Starting 99-custom.sh at $(date)" >> $LOGFILE
 echo "编译固件大小为: $PROFILE MB"

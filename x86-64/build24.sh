@@ -1,6 +1,10 @@
 #!/bin/bash
 # Log file for debugging
+CUSTOM_PACKAGES=""
 source shell/custom-packages.sh
+if [ -f shell/lzy-apply-package-selection.sh ]; then
+  LZY_UPSTREAM_PACKAGE_FILE="shell/custom-packages.sh" LZY_PACKAGE_SOURCE="custom" source shell/lzy-apply-package-selection.sh
+fi
 source shell/switch_repository.sh
 echo "第三方软件包: $CUSTOM_PACKAGES"
 LOGFILE="/tmp/uci-defaults-log.txt"
