@@ -98,6 +98,17 @@ jobs:
             echo "❎ 未启用 luci-app-store"
           fi
 
+      - name: Fetch IPsec kmod integration script from ipsec-kmods repo
+        if: ${{ (inputs.enable_ipsec_kmods || 'yes') == 'yes' }}
+        run: |
+          # 适配脚本托管在 lzylipu/immortalwrt-ipsec-kmods/scripts/ipsec-kmod-fetch.sh，
+          # 所以此 fork 工作目录不再维护 IPsec 相关文件——一处改、IB 自动收到新版本。
+          mkdir -p "${{ github.workspace }}/shell"
+          curl -fsSL "https://raw.githubusercontent.com/${{ inputs.ipsec_kmod_repo || 'lzylipu/immortalwrt-ipsec-kmods' }}/main/scripts/ipsec-kmod-fetch.sh" \
+            -o "${{ github.workspace }}/shell/ipsec-kmods.sh"
+          chmod +x "${{ github.workspace }}/shell/ipsec-kmods.sh"
+          echo "✅ fetched IPsec kmod integration script from ${{ inputs.ipsec_kmod_repo || 'lzylipu/immortalwrt-ipsec-kmods' }}"
+
       - name: Build ImmortalWrt-x86-64-efi 25.12.x
         run: |
           profile="${{ github.event.inputs.profile }}"

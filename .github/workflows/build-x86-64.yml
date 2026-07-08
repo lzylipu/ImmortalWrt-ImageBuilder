@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       firmware_version:
-        description: "ImmortalWrt 版本，仅支持 25.12.x（24.10.x 已停维护，文件保留以兼容上游同步）"
+        description: "ImmortalWrt 版本，例如 25.12.0 / 24.10.6"
         required: true
         default: "25.12.0"
       rootfs_size_mb:
@@ -81,14 +81,15 @@ jobs:
               echo "image=immortalwrt/imagebuilder:x86-64-openwrt-${version}" >> "$GITHUB_OUTPUT"
               echo "store_file=shell/apk-custom-packages.sh" >> "$GITHUB_OUTPUT"
               ;;
-            # LZY 双软路由只用 25.12.x；24.10.x 文件保留以保留上游同步完整性
-            # 但本分支已停止维护 24.10 路径，强行触发会直接退出。
             24.10.*)
-              echo "❌ 24.10.x discontinued on LZY fork — only 25.12.x is supported" >&2
-              exit 1
+              echo "series=24" >> "$GITHUB_OUTPUT"
+              echo "config=x86-64/imm.config" >> "$GITHUB_OUTPUT"
+              echo "script=x86-64/build24.sh" >> "$GITHUB_OUTPUT"
+              echo "image=immortalwrt/imagebuilder:x86-64-openwrt-${version}" >> "$GITHUB_OUTPUT"
+              echo "store_file=shell/custom-packages.sh" >> "$GITHUB_OUTPUT"
               ;;
             *)
-              echo "Only 25.12.x x86-64 is supported by this LZY unified workflow (24.10.x discontinued)" >&2
+              echo "Only 24.10.x and 25.12.x x86-64 are supported by this LZY unified workflow" >&2
               exit 1
               ;;
           esac
@@ -116,6 +117,17 @@ jobs:
           else
             echo "❎ 未启用 luci-app-store"
           fi
+
+      - name: Fetch IPsec kmod integration script from ipsec-kmods repo
+        if: ${{ steps.params.outputs.series == '25' && (inputs.enable_ipsec_kmods || 'yes') == 'yes' }}
+        run: |
+          # 适配脚本托管在 lzylipu/immortalwrt-ipsec-kmods/scripts/ipsec-kmod-fetch.sh，
+          # 所以此 fork 工作目录不再维护 IPsec 相关文件——一处改、IB 自动收到新版本。
+          mkdir -p "${{ github.workspace }}/shell"
+          curl -fsSL "https://raw.githubusercontent.com/${{ inputs.ipsec_kmod_repo || 'lzylipu/immortalwrt-ipsec-kmods' }}/main/scripts/ipsec-kmod-fetch.sh" \
+            -o "${{ github.workspace }}/shell/ipsec-kmods.sh"
+          chmod +x "${{ github.workspace }}/shell/ipsec-kmods.sh"
+          echo "✅ fetched IPsec kmod integration script from ${{ inputs.ipsec_kmod_repo || 'lzylipu/immortalwrt-ipsec-kmods' }}"
 
       - name: Build x86-64 firmware
         run: |
