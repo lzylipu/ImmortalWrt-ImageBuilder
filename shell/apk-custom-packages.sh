@@ -28,8 +28,8 @@
 #CUSTOM_PACKAGES="$CUSTOM_PACKAGES luci-app-lucky lucky luci-i18n-lucky-zh-cn"
 # daed 升级到1.28.0
 #CUSTOM_PACKAGES="$CUSTOM_PACKAGES luci-i18n-daed-zh-cn"
-# AdGuard Home DNS 广告过滤 (25.12+ uses apk; luci-app-adguardhome + adguardhome binary)
-CUSTOM_PACKAGES="$CUSTOM_PACKAGES adguardhome luci-app-adguardhome luci-i18n-adguardhome-zh-cn"
+# AdGuard Home DNS 广告过滤 (25.12+ uses apk; luci-app-adguardhome + adguardhome binary; 25.12 无 zh-cn i18n)
+#CUSTOM_PACKAGES="$CUSTOM_PACKAGES adguardhome luci-app-adguardhome"
 # 任务设置 by sirpdboy
 #CUSTOM_PACKAGES="$CUSTOM_PACKAGES luci-app-taskplan luci-i18n-taskplan-zh-cn"
 
