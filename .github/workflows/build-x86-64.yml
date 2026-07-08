@@ -131,7 +131,7 @@ jobs:
             -v "${{ github.workspace }}/${{ steps.params.outputs.script }}:/home/build/immortalwrt/build.sh" \
             -e PROFILE="${{ inputs.rootfs_size_mb || '1024' }}" \
             -e INCLUDE_DOCKER="${{ inputs.include_docker || 'yes' }}" \
-            -e IMMORTALWRT_VERSION="$version" \
+            -e IMMORTALWRT_VERSION="${{ inputs.firmware_version || '25.12.0' }}" \
             -e ENABLE_IPSEC_KMODS="${{ inputs.enable_ipsec_kmods || 'yes' }}" \
             -e IPSEC_KMOD_REPO="${{ inputs.ipsec_kmod_repo || 'lzylipu/immortalwrt-ipsec-kmods' }}" \
             -e IPSEC_KMOD_RELEASE="${{ inputs.ipsec_kmod_release || 'auto' }}" \
