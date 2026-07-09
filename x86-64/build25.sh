@@ -135,6 +135,39 @@ else
     echo "⚪️ 未选择 luci-app-ssr-plus"
 fi
 
+
+# ============= Custom Inject: luci-app-ipsec-hwdsl2 (Direct File Integration) ==============
+if echo "$PACKAGES" | grep -q "luci-app-ipsec-hwdsl2"; then
+    echo "🛡️ 已选择 luci-app-ipsec-hwdsl2，开始从 GitHub 拉取并固化前端与后端文件..."
+    rm -rf /tmp/ipsec-hwdsl2-src
+    if git clone --depth=1 https://github.com/lzylipu/luci-app-ipsec-hwdsl2.git /tmp/ipsec-hwdsl2-src; then
+        # Copy backend files (rpcd ucode, ACL, menu, uci-defaults)
+        mkdir -p files/usr/share/rpcd/ucode
+        mkdir -p files/usr/share/rpcd/acl.d
+        mkdir -p files/usr/share/luci/menu.d
+        mkdir -p files/etc/uci-defaults
+        
+        cp -v /tmp/ipsec-hwdsl2-src/root/usr/share/rpcd/ucode/ipsec_hwdsl2.uc files/usr/share/rpcd/ucode/
+        cp -v /tmp/ipsec-hwdsl2-src/root/usr/share/rpcd/acl.d/luci-app-ipsec-hwdsl2.json files/usr/share/rpcd/acl.d/
+        cp -v /tmp/ipsec-hwdsl2-src/root/usr/share/luci/menu.d/luci-app-ipsec-hwdsl2.json files/usr/share/luci/menu.d/
+        cp -v /tmp/ipsec-hwdsl2-src/root/etc/uci-defaults/80-ipsec-hwdsl2 files/etc/uci-defaults/
+        
+        # Copy frontend JS views
+        mkdir -p files/www/luci-static/resources/view/ipsec-hwdsl2
+        cp -v /tmp/ipsec-hwdsl2-src/htdocs/luci-static/resources/view/ipsec-hwdsl2/* files/www/luci-static/resources/view/ipsec-hwdsl2/
+        
+        # We integrate the code directly via rootfs injection, so remove the raw package token from make image packages list
+        # to prevent apk from searching in online feeds for a package it does not know.
+        PACKAGES=$(echo "$PACKAGES" | sed 's/luci-app-ipsec-hwdsl2//')
+        echo "✅ luci-app-ipsec-hwdsl2 源码文件已成功固化到 rootfs (files/) 目录，且已从 make image 包列表中移出"
+    else
+        echo "⚠️ 警告: 从 GitHub 拉取 luci-app-ipsec-hwdsl2 源码失败，本次固件构建可能不带此面板！"
+    fi
+else
+    echo "⚪️ 未选择 luci-app-ipsec-hwdsl2"
+fi
+
+
 # 构建镜像
 echo "$(date '+%Y-%m-%d %H:%M:%S') - Building image with the following packages:"
 echo "$PACKAGES"
