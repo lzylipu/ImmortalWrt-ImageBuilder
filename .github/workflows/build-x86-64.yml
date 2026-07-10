@@ -190,7 +190,7 @@ jobs:
           - 密码: 无
           - Docker: ${{ inputs.include_docker }}
           - IPsec kmods: ${{ inputs.enable_ipsec_kmods }}
-          - 部署环境: ${{ inputs.deploy_target == '物理机' ? '物理机(squashfs)' : '虚拟机(ext4)' }}
+          - 部署环境: ${{ inputs.deploy_target == '物理机' && '物理机(squashfs)' || '虚拟机(ext4)' }}
           - 插件选择文件: shell/package-selection.conf（引用上游 shell/custom-packages.sh 或 shell/apk-custom-packages.sh）
           EOF
 
@@ -201,7 +201,7 @@ jobs:
           name: Autobuild-x86-64
           body_path: ${{ github.workspace }}/router-info.md
           files: |
-            ${{ github.workspace }}/bin/targets/x86/64/*${{ inputs.deploy_target == '物理机' ? 'squashfs' : 'ext4' }}-combined-efi.img.gz
+            ${{ github.workspace }}/bin/targets/x86/64/*${{ inputs.deploy_target == '物理机' && 'squashfs' || 'ext4' }}-combined-efi.img.gz
           token: ${{ secrets.GITHUB_TOKEN }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
