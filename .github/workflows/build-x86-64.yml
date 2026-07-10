@@ -46,6 +46,14 @@ on:
         default: "no"
         type: choice
         options: ["yes", "no"]
+      deploy_target:
+        description: "部署环境：物理机=squashfs(可恢复出厂)，虚拟机=ext4(Docker兼容)"
+        required: true
+        default: "vm"
+        type: choice
+        options:
+          - "vm"
+          - "physical"
       pppoe_account:
         description: "宽带账号（启用 PPPoE 时填写）"
         required: false
@@ -128,6 +136,27 @@ jobs:
           chmod +x "${{ github.workspace }}/shell/ipsec-kmods.sh"
           echo "✅ fetched IPsec kmod integration script from ${{ inputs.ipsec_kmod_repo || 'lzylipu/immortalwrt-ipsec-kmods' }}"
 
+      - name: Configure rootfs format (squashfs vs ext4)
+        run: |
+          CONFIG_FILE="${{ github.workspace }}/${{ steps.params.outputs.config }}"
+          DEPLOY_TARGET="${{ inputs.deploy_target || 'vm' }}"
+          echo "Deploy target: $DEPLOY_TARGET"
+          if [ "$DEPLOY_TARGET" = "physical" ]; then
+            # 物理机: squashfs (只读+overlay，可恢复出厂)
+            sed -i 's/^CONFIG_USES_EXT4=y/CONFIG_USES_EXT4=n/' "$CONFIG_FILE"
+            sed -i 's/^CONFIG_TARGET_ROOTFS_EXT4FS=y/CONFIG_TARGET_ROOTFS_EXT4FS=n/' "$CONFIG_FILE"
+            sed -i 's/^# *CONFIG_USES_SQUASHFS is not set/CONFIG_USES_SQUASHFS=y/' "$CONFIG_FILE"
+            sed -i 's/^# *CONFIG_TARGET_ROOTFS_SQUASHFS is not set/CONFIG_TARGET_ROOTFS_SQUASHFS=y/' "$CONFIG_FILE"
+            echo "✅ 物理机模式: squashfs 格式 (可恢复出厂设置)"
+          else
+            # 虚拟机: ext4 (Docker overlay 兼容，无嵌套问题)
+            sed -i 's/^CONFIG_USES_EXT4=n/CONFIG_USES_EXT4=y/' "$CONFIG_FILE"
+            sed -i 's/^CONFIG_TARGET_ROOTFS_EXT4FS=n/CONFIG_TARGET_ROOTFS_EXT4FS=y/' "$CONFIG_FILE"
+            echo "✅ 虚拟机模式: ext4 格式 (Docker 兼容)"
+          fi
+          echo "--- .config rootfs format settings ---"
+          grep -E 'CONFIG_USES_EXT4|CONFIG_TARGET_ROOTFS_EXT4FS|CONFIG_USES_SQUASHFS|CONFIG_TARGET_ROOTFS_SQUASHFS' "$CONFIG_FILE"
+
       - name: Build x86-64 firmware
         run: |
           chmod +x "${{ github.workspace }}/${{ steps.params.outputs.script }}"
@@ -161,6 +190,7 @@ jobs:
           - 密码: 无
           - Docker: ${{ inputs.include_docker }}
           - IPsec kmods: ${{ inputs.enable_ipsec_kmods }}
+          - 部署环境: ${{ inputs.deploy_target == 'physical' && '物理机(squashfs)' || '虚拟机(ext4)' }}
           - 插件选择文件: shell/package-selection.conf（引用上游 shell/custom-packages.sh 或 shell/apk-custom-packages.sh）
           EOF
 
@@ -171,7 +201,7 @@ jobs:
           name: Autobuild-x86-64
           body_path: ${{ github.workspace }}/router-info.md
           files: |
-            ${{ github.workspace }}/bin/targets/x86/64/*squashfs-combined-efi.img.gz
+            ${{ github.workspace }}/bin/targets/x86/64/*${{ inputs.deploy_target == 'physical' && 'squashfs' || 'ext4' }}-combined-efi.img.gz
           token: ${{ secrets.GITHUB_TOKEN }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
