@@ -49,11 +49,11 @@ on:
       deploy_target:
         description: "部署环境：物理机=squashfs(可恢复出厂)，虚拟机=ext4(Docker兼容)"
         required: true
-        default: "vm"
+        default: "虚拟机"
         type: choice
         options:
-          - "vm"
-          - "physical"
+          - "虚拟机"
+          - "物理机"
       pppoe_account:
         description: "宽带账号（启用 PPPoE 时填写）"
         required: false
@@ -139,9 +139,9 @@ jobs:
       - name: Configure rootfs format (squashfs vs ext4)
         run: |
           CONFIG_FILE="${{ github.workspace }}/${{ steps.params.outputs.config }}"
-          DEPLOY_TARGET="${{ inputs.deploy_target || 'vm' }}"
+          DEPLOY_TARGET="${{ inputs.deploy_target || '虚拟机' }}"
           echo "Deploy target: $DEPLOY_TARGET"
-          if [ "$DEPLOY_TARGET" = "physical" ]; then
+          if [ "$DEPLOY_TARGET" = "物理机" ]; then
             # 物理机: squashfs (只读+overlay，可恢复出厂)
             sed -i 's/^CONFIG_USES_EXT4=y/CONFIG_USES_EXT4=n/' "$CONFIG_FILE"
             sed -i 's/^CONFIG_TARGET_ROOTFS_EXT4FS=y/CONFIG_TARGET_ROOTFS_EXT4FS=n/' "$CONFIG_FILE"
@@ -190,7 +190,7 @@ jobs:
           - 密码: 无
           - Docker: ${{ inputs.include_docker }}
           - IPsec kmods: ${{ inputs.enable_ipsec_kmods }}
-          - 部署环境: ${{ inputs.deploy_target == 'physical' && '物理机(squashfs)' || '虚拟机(ext4)' }}
+          - 部署环境: ${{ inputs.deploy_target == '物理机' ? '物理机(squashfs)' : '虚拟机(ext4)' }}
           - 插件选择文件: shell/package-selection.conf（引用上游 shell/custom-packages.sh 或 shell/apk-custom-packages.sh）
           EOF
 
@@ -201,7 +201,7 @@ jobs:
           name: Autobuild-x86-64
           body_path: ${{ github.workspace }}/router-info.md
           files: |
-            ${{ github.workspace }}/bin/targets/x86/64/*${{ inputs.deploy_target == 'physical' && 'squashfs' || 'ext4' }}-combined-efi.img.gz
+            ${{ github.workspace }}/bin/targets/x86/64/*${{ inputs.deploy_target == '物理机' ? 'squashfs' : 'ext4' }}-combined-efi.img.gz
           token: ${{ secrets.GITHUB_TOKEN }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
