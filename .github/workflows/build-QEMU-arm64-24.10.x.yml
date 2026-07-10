@@ -4,53 +4,53 @@ name: Build 24.10.x QEMU-armsr-armv8
 # 比如新款Apple Silicon芯片的苹果电脑里的虚拟机UTM 可用
 # 比如友善NanoPi R3S、R5S 官方推出的预装了PVE的debian系统 可用
 # 比如瑞莎E20C刷了Armbian系统，自己安装了QEMU+KVM虚拟机 可用
-on:
-  workflow_dispatch:
-    inputs:
-      luci_version:
-        description: "选择luci版本"
-        required: false
-        default: "24.10.6"
-        type: choice
-        options:
-          - 24.10.0
-          - 24.10.1
-          - 24.10.2
-          - 24.10.3
-          - 24.10.4
-          - 24.10.5
-          - 24.10.6
-      profile:
-        type: choice
-        description: |
-          可用于ARM64虚拟机(比如macOS下的UTM虚拟机 比如斐讯N1/R3S/R5S等arm64系统的PVE虚拟机)
-        options:
-          - generic
-        required: true
-        default: 'generic'
-      rootfs_partsize:
-        description: '设置软件包大小 单位(MB) 最大数值10240'
-        required: true
-        default: '2048'
-      enable_store:
-        description: "集成 store 商店"
-        required: false
-        type: boolean
-        default: true
-      enable_pppoe:
-        description: "是否配置PPPoE拨号信息?"
-        required: true
-        default: 'no'
-        type: choice
-        options:
-        - 'yes'
-        - 'no'
-      pppoe_account:
-        description: "宽带账号 (若启用PPPoE)"
-        required: false
-      pppoe_password:
-        description: "宽带密码 (若启用PPPoE)"
-        required: false
+# on:
+#   workflow_dispatch:
+#     inputs:
+#       luci_version:
+#         description: "选择luci版本"
+#         required: false
+#         default: "24.10.6"
+#         type: choice
+#         options:
+#           - 24.10.0
+#           - 24.10.1
+#           - 24.10.2
+#           - 24.10.3
+#           - 24.10.4
+#           - 24.10.5
+#           - 24.10.6
+#       profile:
+#         type: choice
+#         description: |
+#           可用于ARM64虚拟机(比如macOS下的UTM虚拟机 比如斐讯N1/R3S/R5S等arm64系统的PVE虚拟机)
+#         options:
+#           - generic
+#         required: true
+#         default: 'generic'
+#       rootfs_partsize:
+#         description: '设置软件包大小 单位(MB) 最大数值10240'
+#         required: true
+#         default: '2048'
+#       enable_store:
+#         description: "集成 store 商店"
+#         required: false
+#         type: boolean
+#         default: true
+#       enable_pppoe:
+#         description: "是否配置PPPoE拨号信息?"
+#         required: true
+#         default: 'no'
+#         type: choice
+#         options:
+#         - 'yes'
+#         - 'no'
+#       pppoe_account:
+#         description: "宽带账号 (若启用PPPoE)"
+#         required: false
+#       pppoe_password:
+#         description: "宽带密码 (若启用PPPoE)"
+#         required: false
 
 permissions:
   contents: write

@@ -52,10 +52,9 @@ on:
       pppoe_password:
         description: "宽带密码（启用 PPPoE 时填写）"
         required: false
-  push:
-    branches:
-      - ipsec-kmods
-
+#  push:
+#    branches:
+#      - ipsec-kmods
 permissions:
   contents: write
 
