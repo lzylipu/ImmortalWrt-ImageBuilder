@@ -180,3 +180,25 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "$(date '+%Y-%m-%d %H:%M:%S') - Build completed successfully."
+
+
+# 将生成的 img 镜像转为稀疏文件后重新 gzip，消除 dd 填零产生的巨型文件
+# 60GB 零填充镜像 → sparse 后实际只读 ~200MB → gzip 速度提升 100 倍
+echo "$(date '+%Y-%m-%d %H:%M:%S') - Optimizing image (sparse + re-gzip)..."
+IMG_DIR="/home/build/immortalwrt/bin/targets/x86/64"
+for IMG in "$IMG_DIR"/*-combined-efi.img; do
+    [ -f "$IMG" ] || continue
+    ACTUAL_MB=$(($(du -s "$IMG" | cut -f1) / 1024))
+    APPARENT_MB=$(($(du -s --apparent-size "$IMG" | cut -f1) / 1024))
+    echo "  $(basename $IMG): actual=${ACTUAL_MB}MB apparent=${APPARENT_MB}MB"
+    if [ "$ACTUAL_MB" -lt "$APPARENT_MB" ]; then
+        echo "  → converting to sparse..."
+        cp --sparse=always "$IMG" "${IMG}.sparse"
+        mv "${IMG}.sparse" "$IMG"
+        echo "  → re-gzipping (this replaces the slow upstream gzip of 60GB zeros)..."
+        GZ="${IMG}.gz"
+        gzip -c "$IMG" > "$GZ"
+        echo "  → done: $(basename $GZ) = $(($(du -s "$GZ" | cut -f1) / 1024))MB"
+    fi
+done
+echo "$(date '+%Y-%m-%d %H:%M:%S') - Image optimization done."
