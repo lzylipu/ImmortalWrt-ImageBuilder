@@ -28,8 +28,9 @@ jobs:
           git fetch origin master ipsec-kmods
 
           # 1) master 永远作为上游镜像，方便随时对照悟空原版。
-          git checkout master
-          git reset --hard upstream/master
+          # git 2.54: 'git checkout master' 报 'matched multiple (2) remote tracking branches'
+          # 因为 origin/master 和 upstream/master 都存在。用 -B 显式指定 ref。
+          git checkout -B master upstream/master
           git push origin master --force-with-lease
 
           # 2) LZY 分支每天合入上游更新；冲突时优先保留本分支自定义文件，不让同步覆盖自定义。
