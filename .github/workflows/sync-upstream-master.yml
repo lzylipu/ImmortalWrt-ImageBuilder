@@ -27,25 +27,43 @@ jobs:
           git fetch upstream master
           git fetch origin ipsec-kmods
 
-          # 本地分支随时可对照悟空原版：git diff upstream/master -- <path>
           # 不再 push origin/master —— github-actions[bot] 默认 GITHUB_TOKEN 没有
-          # workflows 权限，无法 push 涉及 .github/workflows/*.yml 的改动，会
-          # 一直 surface 红叉（remote rejected）。fork 的 master 分支已 stale
-          # 也无所谓，需要对照时直接看 upstream/master 即可。
+          # workflows 权限，无法 push 涉及 .github/workflows/*.yml 的改动，会持续
+          # surface 红叉（remote rejected）。需要对照悟空原版直接看 upstream/master:
+          # git diff upstream/master -- <path>
 
-          # 把上游更新合入 LZY 分支；冲突时优先保留本分支自定义（如 .disabled
-          # 改名、自己的 build-x86-64.yml 等），不让同步覆盖自定义。
+          # 把上游更新合入 LZY 分支。冲突时优先保留本分支自定义（.disabled 改名、
+          # 自己的 build-x86-64.yml 等），不让同步覆盖自定义。
           git checkout -B ipsec-kmods origin/ipsec-kmods
           if git merge --no-edit -X ours upstream/master; then
-            # 只有真有新提交要 push 时才 push，避免无意义的空 run 报错
-            if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/ipsec-kmods)" ]; then
-              git push origin ipsec-kmods
-              echo "✅ upstream merged into ipsec-kmods and pushed."
-            else
-              echo "ℹ️ upstream already merged, nothing to push."
-            fi
+            :
           else
-            echo "❌ upstream merge conflicted. Custom files were not overwritten; please resolve manually."
-            git status --short
-            exit 1
+            # modify/delete 冲突 -X ours 不会自动选 ours：上游修改了一个我们已删除的
+            # 文件（典型场景：我们改了 .disabled 后缀、上游改了原文件内容 → modify/delete）
+            # 这类冲突逐个解决：上游版本一律 git rm（保留我们的删除决定），完事提交。
+            CONFLICT_FILE=""
+            while IFS= read -r line; do
+              # 形如 "DU  .github/workflows/build-xx.yml"
+              if echo "$line" | grep -q '^DU '; then
+                path=$(echo "$line" | awk '{print $2}')
+                git rm -f -- "$path" || true
+                echo "→ resolved modify/delete: kept our deletion ($path)"
+              fi
+            done < <(git diff --name-only --diff-filter=U)
+            # 再扫一遍，没冲突了再提交；还有冲突就真没招了，抛错
+            if [ -n "$(git diff --name-only --diff-filter=U)" ]; then
+              echo "❌ unresolved conflicts remain after auto-resolve:"
+              git diff --name-only --diff-filter=U
+              git status --short
+              exit 1
+            fi
+            git commit --no-edit
+          fi
+
+          # 只有真有新提交要 push 时才 push，避免无意义的空 run 报错
+          if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/ipsec-kmods)" ]; then
+            git push origin ipsec-kmods
+            echo "✅ upstream merged into ipsec-kmods and pushed."
+          else
+            echo "ℹ️ upstream already merged, nothing to push."
           fi
