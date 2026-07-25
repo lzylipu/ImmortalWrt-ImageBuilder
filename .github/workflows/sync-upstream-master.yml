@@ -20,7 +20,7 @@ jobs:
 
       - name: Sync upstream into LZY branch
         run: |
-          set -euo pipefail
+          set -uo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git remote add upstream https://github.com/wukongdaily/ImmortalWrt-ImageBuilder.git || true
@@ -32,32 +32,58 @@ jobs:
           # surface 红叉（remote rejected）。需要对照悟空原版直接看 upstream/master:
           # git diff upstream/master -- <path>
 
-          # 把上游更新合入 LZY 分支。冲突时优先保留本分支自定义（.disabled 改名、
-          # 自己的 build-x86-64.yml 等），不让同步覆盖自定义。
+          # 把上游更新合入 LZY 分支。先用 -X ours 让 git 自动解 content 冲突；
+          # 剩下的 modify/delete 冲突（我们改名为 .disabled、上游改了原文件内容）
+          # -X ours 不会自动处理，靠下面这段兜底：一律按"我们的删除决定"为准。
           git checkout -B ipsec-kmods origin/ipsec-kmods
+
           if git merge --no-edit -X ours upstream/master; then
-            :
+            MERGED_CLEAN=1
           else
-            # modify/delete 冲突 -X ours 不会自动选 ours：上游修改了一个我们已删除的
-            # 文件（典型场景：我们改了 .disabled 后缀、上游改了原文件内容 → modify/delete）
-            # 这类冲突逐个解决：上游版本一律 git rm（保留我们的删除决定），完事提交。
-            CONFLICT_FILE=""
+            MERGED_CLEAN=0
+          fi
+
+          if [ "$MERGED_CLEAN" = "0" ]; then
+            # 兜底解决所有 unmerged 路径。git status 里的标记含义：
+            #   DU = deleted by us, modified by them   → 我们删了，上游改了 → rm
+            #   UD = modified by us, deleted by them   → 我们改了，上游删了 → add (保留我们的)
+            #   UU/AA/UA = content conflict 双方都改 → -X ours 已选 ours 但仍可能 staged，
+            #                                        用 checkout --ours 兜底
+            # 逐行从 git status --porcelain 拿状态码和路径
             while IFS= read -r line; do
-              # 形如 "DU  .github/workflows/build-xx.yml"
-              if echo "$line" | grep -q '^DU '; then
-                path=$(echo "$line" | awk '{print $2}')
-                git rm -f -- "$path" || true
-                echo "→ resolved modify/delete: kept our deletion ($path)"
-              fi
-            done < <(git diff --name-only --diff-filter=U)
-            # 再扫一遍，没冲突了再提交；还有冲突就真没招了，抛错
-            if [ -n "$(git diff --name-only --diff-filter=U)" ]; then
+              xy=$(printf '%s' "$line" | cut -c1-2)
+              # 第 4 列起是 path（可能有引号，但 workflow 路径无空格，直接取）
+              path=$(printf '%s' "$line" | cut -c4-)
+              case "$xy" in
+                DU)
+                  # 我们删了上游改了 → 维持删除
+                  git rm -f -- "$path" >/dev/null 2>&1 || true
+                  ;;
+                UD)
+                  # 我们改了上游删了 → 保留我们的
+                  git add -- "$path" >/dev/null 2>&1 || git checkout HEAD -- "$path" >/dev/null 2>&1 || true
+                  ;;
+                UU|AA|UA|AU|DD)
+                  # content 冲突兜底：取 ours
+                  git checkout --ours -- "$path" >/dev/null 2>&1 && git add -- "$path" >/dev/null 2>&1 || true
+                  ;;
+                *)
+                  # 其他状态不动（可能已 staged）
+                  ;;
+              esac
+            done < <(git status --porcelain | grep -E '^(DU|UD|UU|AA|AU|UA|DD) ')
+
+            # 兜底完再扫一次，还有 unmerged 就真没招了
+            REMAIN=$(git diff --name-only --diff-filter=U)
+            if [ -n "$REMAIN" ]; then
               echo "❌ unresolved conflicts remain after auto-resolve:"
-              git diff --name-only --diff-filter=U
+              echo "$REMAIN"
               git status --short
               exit 1
             fi
-            git commit --no-edit
+
+            # 完成这次 merge commit
+            git commit --no-edit >/dev/null
           fi
 
           # 只有真有新提交要 push 时才 push，避免无意义的空 run 报错
