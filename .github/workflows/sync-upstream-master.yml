@@ -51,9 +51,9 @@ jobs:
             #                                        用 checkout --ours 兜底
             # 逐行从 git status --porcelain 拿状态码和路径
             while IFS= read -r line; do
-              xy=$(printf '%s' "$line" | cut -c1-2)
+              xy=$(printf "%s" "$line" | cut -c1-2)
               # 第 4 列起是 path（可能有引号，但 workflow 路径无空格，直接取）
-              path=$(printf '%s' "$line" | cut -c4-)
+              path=$(printf "%s" "$line" | cut -c4-)
               case "$xy" in
                 DU)
                   # 我们删了上游改了 → 维持删除
@@ -84,6 +84,21 @@ jobs:
 
             # 完成这次 merge commit
             git commit --no-edit >/dev/null
+          fi
+
+          # ⚠️ 关键修正：剔除 .github/workflows/ 下所有改动，还原成 HEAD 版本，再 amend。
+          # github-actions[bot] 用 GITHUB_TOKEN push，GitHub 铁律：触发 workflow 改动
+          # 必须有 workflows 权限，GITHUB_TOKEN 永远拿不到。所以 push 的 commit 里
+          # 不能含 .github/workflows/ 下的文件改动，否则 remote rejected。
+          # 代价：上游对 .github/workflows/*.yml.disabled 的更新不同步到 fork
+          # （但这些 workflow 本来就被 fork 禁用，无影响）。
+          WORKFLOW_CHANGES=$(git diff --name-only HEAD -- .github/workflows/ || true)
+          if [ -n "$WORKFLOW_CHANGES" ]; then
+            echo "ℹ️ stripping workflow-only changes from merge commit:"
+            echo "$WORKFLOW_CHANGES"
+            git checkout HEAD -- .github/workflows/
+            git add .github/workflows/
+            git commit --amend --no-edit >/dev/null
           fi
 
           # 只有真有新提交要 push 时才 push，避免无意义的空 run 报错
