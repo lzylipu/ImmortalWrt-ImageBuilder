@@ -35,6 +35,7 @@ jobs:
           # 把上游更新合入 LZY 分支。先用 -X ours 让 git 自动解 content 冲突；
           # 剩下的 modify/delete 冲突（我们改名为 .disabled、上游改了原文件内容）
           # -X ours 不会自动处理，靠下面这段兜底：一律按"我们的删除决定"为准。
+          PRE_MERGE_SHA=$(git rev-parse origin/ipsec-kmods)
           git checkout -B ipsec-kmods origin/ipsec-kmods
 
           if git merge --no-edit -X ours upstream/master; then
@@ -86,19 +87,21 @@ jobs:
             git commit --no-edit >/dev/null
           fi
 
-          # ⚠️ 关键修正：剔除 .github/workflows/ 下所有改动，还原成 HEAD 版本，再 amend。
-          # github-actions[bot] 用 GITHUB_TOKEN push，GitHub 铁律：触发 workflow 改动
-          # 必须有 workflows 权限，GITHUB_TOKEN 永远拿不到。所以 push 的 commit 里
+          # ⚠️ 关键修正 v2：跟 merge 前的 PRE_MERGE_SHA 比，而不是跟 HEAD 比。
+          # HEAD 已经是 merge 后的状态，git diff HEAD -- 会爆空。
+          # GitHub 铁律：GITHUB_TOKEN 永远拿不到 workflows 权限，push 的 commit 里
           # 不能含 .github/workflows/ 下的文件改动，否则 remote rejected。
+          # 解法：把 .github/workflows/ 还原成 merge 前 PRE_MERGE_SHA 的版本，再 amend。
           # 代价：上游对 .github/workflows/*.yml.disabled 的更新不同步到 fork
           # （但这些 workflow 本来就被 fork 禁用，无影响）。
-          WORKFLOW_CHANGES=$(git diff --name-only HEAD -- .github/workflows/ || true)
+          WORKFLOW_CHANGES=$(git diff --name-only "$PRE_MERGE_SHA" HEAD -- .github/workflows/ 2>/dev/null || true)
           if [ -n "$WORKFLOW_CHANGES" ]; then
             echo "ℹ️ stripping workflow-only changes from merge commit:"
             echo "$WORKFLOW_CHANGES"
-            git checkout HEAD -- .github/workflows/
+            git checkout "$PRE_MERGE_SHA" -- .github/workflows/
             git add .github/workflows/
             git commit --amend --no-edit >/dev/null
+            echo "✅ workflow changes stripped, push should now succeed."
           fi
 
           # 只有真有新提交要 push 时才 push，避免无意义的空 run 报错
