@@ -2,6 +2,8 @@
 
 **🌐 English | [简体中文](#-简体中文)**
 
+> 📡 定制版 ImmortalWrt 25.12.x x86-64 固件一键编译：原生 Docker VPN（IKEv2/L2TP）内核支持、去广告与 Meta 代理内核预置，Actions 手动触发即出固件。
+
 ---
 
 ## 🌐 English
@@ -41,3 +43,9 @@ This project is an open-source extension of the upstream [wukongdaily/ImmortalWr
    - `include_docker`: 选择 `yes` 开启 Docker 功能支持。
    - `enable_ipsec_kmods`: 选择 `yes` 自动装载 IPsec 底层内核。
 4. 点击 **Run workflow**，编译完成后将在 Releases 自动生成下载链接。
+
+---
+
+## 📄 许可证 / License
+
+[MIT](./LICENSE) License
