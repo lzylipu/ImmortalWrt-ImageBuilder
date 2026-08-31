@@ -1,6 +1,16 @@
+<div align="center">
+
 # 📡 ImmortalWrt-ImageBuilder (ipsec-kmods Branch)
 
+**定制版 ImmortalWrt 25.12.x x86-64 固件一键编译 · Docker VPN · 去广告 · Meta 内核预置**
+
+[![Build](https://img.shields.io/github/actions/workflow/status/lzylipu/ImmortalWrt-ImageBuilder/build-x86-64.yml?style=flat-square&label=build)](../../actions)
+[![Fork of](https://img.shields.io/badge/Fork%20of-wukongdaily%2FImmortalWrt--ImageBuilder-ffde59)](https://github.com/wukongdaily/ImmortalWrt-ImageBuilder)
+[![License](https://img.shields.io/github/license/lzylipu/ImmortalWrt-ImageBuilder?style=flat-square)](./LICENSE)
+
 **🌐 English | [简体中文](#-简体中文)**
+
+</div>
 
 > 📡 定制版 ImmortalWrt 25.12.x x86-64 固件一键编译：原生 Docker VPN（IKEv2/L2TP）内核支持、去广告与 Meta 代理内核预置，Actions 手动触发即出固件。
 
