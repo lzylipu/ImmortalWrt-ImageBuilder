@@ -2,7 +2,7 @@
 
 **定制版 ImmortalWrt 25.12.x x86-64 固件一键编译 · Docker VPN · 去广告 · Meta 内核预置**
 
-**🌐 English | [简体中文](#-简体中文)**
+**[English](./README_EN.md) | 简体中文**
 
 > 📡 定制版 ImmortalWrt 25.12.x x86-64 固件一键编译：原生 Docker VPN（IKEv2/L2TP）内核支持、去广告与 Meta 代理内核预置，Actions 手动触发即出固件。
 
