@@ -1,16 +1,8 @@
-<div align="center">
-
 # 📡 ImmortalWrt-ImageBuilder (ipsec-kmods Branch)
 
 **Custom ImmortalWrt 25.12.x x86-64 Firmware Builder — Docker VPN · Ad Blocking · Meta Proxy Cores**
 
-[![Build](https://img.shields.io/github/actions/workflow/status/lzylipu/ImmortalWrt-ImageBuilder/build-x86-64.yml?style=flat-square&label=build)](../../actions)
-[![License](https://img.shields.io/github/license/lzylipu/ImmortalWrt-ImageBuilder?style=flat-square)](./LICENSE)
-[![Upstream](https://img.shields.io/badge/Fork%20of-wukongdaily%2FImmortalWrt--ImageBuilder-ffde59)](https://github.com/wukongdaily/ImmortalWrt-ImageBuilder)
-
 **English | [简体中文](./README.md)**
-
-</div>
 
 ---
 
